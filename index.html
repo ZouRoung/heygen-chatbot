@@ -1,3 +1,4 @@
+Neue Version
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -54,7 +55,7 @@
       room = new LivekitClient.Room();
       await room.connect(sessionInfo.url, sessionInfo.access_token);
       room.on(LivekitClient.RoomEvent.TrackSubscribed, track => {
-        if (track.kind === "video") {
+        if (track.kind === "video" || track.kind === "audio") {
           mediaStream.addTrack(track.mediaStreamTrack);
           document.getElementById("mediaElement").srcObject = mediaStream;
           status("Avatar Video empfangen");
