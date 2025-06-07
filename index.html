@@ -14,7 +14,7 @@
 </head>
 <body>
   <h1>HeyGen Avatar Demo</h1>
-  <input id="avatarID" placeholder="Avatar-ID (oder Ava‑ID)" value="c5e81098eb3e46189740b6156b3ac85a">
+  <input id="avatarID" placeholder="Avatar-ID (oder Ava‑ID)" value="107f60dece78401191caa21b67dcf3b7">
   <input id="voiceID" placeholder="Voice ID" value="de_de_001">
   <button id="startBtn">Start Avatar</button>
   <button id="closeBtn" disabled>Stop</button><br>
@@ -33,23 +33,13 @@
       s.innerHTML += msg + "<br>"; s.scrollTop = s.scrollHeight;
     };
 
-    async function getToken() {
-      const res = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.create_token`, {
-        method:"POST", headers:{"Content-Type":"application/json","X-Api-Key":API_CONFIG.apiKey}
-      });
-      const d = await res.json();
-      sessionToken = d.data.token;
-      status("Token ok");
-    }
-
     async function createSession() {
-      await getToken();
       const avatar = document.getElementById("avatarID").value;
       const voice = document.getElementById("voiceID").value;
 
       const res = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.new`, {
         method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer " + sessionToken},
+        headers:{"Content-Type":"application/json","Authorization":"Bearer " + API_CONFIG.apiKey},
         body: JSON.stringify({ version:"v2", avatar_id:avatar, voice:{voice_id:voice} })
       });
       sessionInfo = (await res.json()).data;
@@ -57,7 +47,7 @@
 
       await fetch(`${API_CONFIG.serverUrl}/v1/streaming.start`, {
         method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+sessionToken},
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+ API_CONFIG.apiKey},
         body: JSON.stringify({ session_id: sessionInfo.session_id })
       });
       status("Streaming gestartet");
