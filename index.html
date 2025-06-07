@@ -1,0 +1,108 @@
+  GNU nano 7.1                       index.html
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>HeyGen Streaming mit LiveKit</title>
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, button { padding: 0.5em; margin: 0.5em; }
+    video { width: 100%; max-width: 640px; margin-top: 1em; }
+    #status { font-family: monospace; border: 1px solid #ccc; padding: 1em; max-height:200px; overflow-y:auto; }
+  </style>
+</head>
+<body>
+  <h1>HeyGen Avatar Demo</h1>
+  <input id="avatarID" placeholder="Avatar-ID (oder Ava‑ID)" value="c5e81098eb3e46189740b6156b3ac85a">
+  <input id="voiceID" placeholder="Voice ID" value="de_de_001">
+  <button id="startBtn">Start Avatar</button>
+  <button id="closeBtn" disabled>Stop</button><br>
+  <input id="taskInput" placeholder="Text eintippen...">
+  <button id="talkBtn" disabled>Accent</button>
+  <video id="mediaElement" autoplay></video>
+  <div id="status"></div>
+
+  <script>
+    const API_CONFIG = { serverUrl: "https://api.heygen.com", apiKey: "N2NjNzhmYjVmODI2NDE2NWFiMmIzMzRhMDVkNzk1MWYtMTc0OTMxOTQwNg==" };
+
+    let sessionInfo = null, room = null, mediaStream = new MediaStream(), sessionToken = null;
+
+    const status = msg => {
+      const s = document.getElementById("status");
+      s.innerHTML += msg + "<br>"; s.scrollTop = s.scrollHeight;
+    };
+
+    async function getToken() {
+      const res = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.create_token`, {
+        method:"POST", headers:{"Content-Type":"application/json","X-Api-Key":API_CONFIG.apiKey}
+      });
+      const d = await res.json();
+      sessionToken = d.data.token;
+      status("Token ok");
+    }
+
+    async function createSession() {
+      await getToken();
+      const avatar = document.getElementById("avatarID").value;
+      const voice = document.getElementById("voiceID").value;
+
+      const res = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.new`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer " + sessionToken},
+        body: JSON.stringify({ version:"v2", avatar_id:avatar, voice:{voice_id:voice} })
+      });
+      sessionInfo = (await res.json()).data;
+      status("Session gestartet: " + sessionInfo.session_id);
+
+      await fetch(`${API_CONFIG.serverUrl}/v1/streaming.start`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+sessionToken},
+        body: JSON.stringify({ session_id: sessionInfo.session_id })
+      });
+      status("Streaming gestartet");
+
+      room = new LivekitClient.Room();
+      await room.connect(sessionInfo.url, sessionInfo.access_token);
+      room.on(LivekitClient.RoomEvent.TrackSubscribed, track => {
+        if (track.kind === "video") {
+          mediaStream.addTrack(track.mediaStreamTrack);
+          document.getElementById("mediaElement").srcObject = mediaStream;
+          status("Avatar Video empfangen");
+          document.getElementById("talkBtn").disabled = false;
+        }
+      });
+      document.getElementById("startBtn").disabled = true;
+      document.getElementById("closeBtn").disabled = false;
+    }
+
+    async function sendText() {
+      const txt = document.getElementById("taskInput").value;
+      if (!sessionInfo) return;
+      await fetch(`${API_CONFIG.serverUrl}/v1/streaming.task`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+sessionToken},
+        body: JSON.stringify({ session_id:sessionInfo.session_id, text:txt, task_type:"talk" })
+      });
+      status("Gesendet: " + txt);
+    }
+
+    async function closeSession() {
+      if (!sessionInfo) return;
+      await fetch(`${API_CONFIG.serverUrl}/v1/streaming.stop`, {
+        method:"POST", headers:{"Content-Type":"application/json","Authorization":"Bearer "+sessionToken},
+        body: JSON.stringify({ session_id:sessionInfo.session_id })
+      });
+      room && room.disconnect();
+      status("Session gestoppt");
+      document.getElementById("startBtn").disabled = false;
+      document.getElementById("closeBtn").disabled = true;
+      document.getElementById("talkBtn").disabled = true;
+    }
+
+    document.getElementById("startBtn").onclick = createSession;
+    document.getElementById("talkBtn").onclick = sendText;
+    document.getElementById("closeBtn").onclick = closeSession;
+  </script>
+</body>
+</html>
