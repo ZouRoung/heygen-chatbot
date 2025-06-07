@@ -14,8 +14,8 @@
 </head>
 <body>
   <h1>HeyGen Avatar Demo</h1>
-  <input id="avatarID" placeholder="Avatar-ID (oder Ava‑ID)" value="4b23a17012c3455f96b31978dfe78900">
-  <input id="voiceID" placeholder="Voice ID" value="63608103877d43a0b3c61e240b8f86c3">
+  <input id="avatarID" placeholder="Avatar-ID (oder Ava‑ID)" value="">
+  <input id="voiceID" placeholder="Voice ID" value="">
   <button id="startBtn">Start Avatar</button>
   <button id="closeBtn" disabled>Stop</button><br>
   <input id="taskInput" placeholder="Text eintippen...">
@@ -24,7 +24,7 @@
   <div id="status"></div>
 
   <script>
-    const API_CONFIG = { serverUrl: "https://api.heygen.com", apiKey: "N2NjNzhmYjVmODI2NDE2NWFiMmIzMzRhMDVkNzk1MWYtMTc0OTMxOTQwNg==" };
+    const API_CONFIG = { serverUrl: "https://api.heygen.com", apiKey: "Y2ExMTAyNDcyZjRlNDk2ODgzNDJlMDAxYjQyMzE3MGItMTc0OTMzMTU1Ng==" };
 
     let sessionInfo = null, room = null, mediaStream = new MediaStream();
 
