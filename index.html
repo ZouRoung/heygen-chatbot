@@ -26,7 +26,7 @@
   <script>
     const API_CONFIG = { serverUrl: "https://api.heygen.com", apiKey: "N2NjNzhmYjVmODI2NDE2NWFiMmIzMzRhMDVkNzk1MWYtMTc0OTMxOTQwNg==" };
 
-    let sessionInfo = null, room = null, mediaStream = new MediaStream(), sessionToken = null;
+    let sessionInfo = null, room = null, mediaStream = new MediaStream();
 
     const status = msg => {
       const s = document.getElementById("status");
@@ -71,7 +71,7 @@
       if (!sessionInfo) return;
       await fetch(`${API_CONFIG.serverUrl}/v1/streaming.task`, {
         method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+sessionToken},
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+ API_CONFIG.apiKey},
         body: JSON.stringify({ session_id:sessionInfo.session_id, text:txt, task_type:"talk" })
       });
       status("Gesendet: " + txt);
@@ -80,7 +80,7 @@
     async function closeSession() {
       if (!sessionInfo) return;
       await fetch(`${API_CONFIG.serverUrl}/v1/streaming.stop`, {
-        method:"POST", headers:{"Content-Type":"application/json","Authorization":"Bearer "+sessionToken},
+        method:"POST", headers:{"Content-Type":"application/json","Authorization":"Bearer "+ API_CONFIG.apiKey},
         body: JSON.stringify({ session_id:sessionInfo.session_id })
       });
       room && room.disconnect();
